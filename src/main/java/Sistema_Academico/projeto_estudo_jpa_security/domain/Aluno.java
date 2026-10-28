@@ -1,35 +1,31 @@
 package Sistema_Academico.projeto_estudo_jpa_security.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
-
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
 
 @Entity
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-@Builder
+@NoArgsConstructor
 @Table(name = "aluno")
 public class Aluno {
-
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nome;
 
+    @Column(unique = true, length = 254)
+    private String email;
+
+    @JsonIgnore
+    @Column(name = "senha_hash", length = 60)
+    private String senhaHash;
+
     @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
-
-    @OneToMany(mappedBy = "aluno", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<Matricula> matriculas = new ArrayList<>();
-
-
 }

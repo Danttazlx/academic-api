@@ -1,65 +1,57 @@
 package Sistema_Academico.projeto_estudo_jpa_security.config;
 
-
+import Sistema_Academico.projeto_estudo_jpa_security.repository.AlunoRepository;
+import java.util.Locale;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
-@EnableWebSecurity
 public class SecurityCofiguration {
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-
-                .csrf(AbstractHttpConfigurer::disable)
-                .formLogin(Customizer.withDefaults())
-                .httpBasic(Customizer.withDefaults())
-                .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest()
-                        .authenticated()
-                )
-                .build();
-
+            .csrf(Customizer.withDefaults())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.GET, "/v1/auth/csrf").permitAll()
+                .requestMatchers(HttpMethod.POST, "/v1/auth/cadastro", "/v1/auth/login").permitAll()
+                .requestMatchers("/error").permitAll()
+                .anyRequest().denyAll())
+            .formLogin(form -> form.loginProcessingUrl("/v1/auth/login")
+                .usernameParameter("email")
+                .passwordParameter("senha")
+                .successHandler((req, res, auth) -> res.setStatus(204))
+                .failureHandler((req, res, ex) -> res.setStatus(401)))
+            .logout(logout -> logout.logoutUrl("/v1/auth/logout")
+                .logoutSuccessHandler((req, res, auth) -> res.setStatus(204)))
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((req, res, error) -> res.setStatus(401))
+                .accessDeniedHandler((req, res, error) -> res.setStatus(403)))
+            .build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder (){
-        return new BCryptPasswordEncoder(10);
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
-    public UserDetailsService userDetailsService (PasswordEncoder encoder){
-
-        UserDetails user1 = User.builder()
-
-                .username("user")
-                .password(encoder.encode("123"))
-                .roles("USER")
+    public UserDetailsService userDetailsService(AlunoRepository alunos) {
+        return login -> {
+            String email = login.strip().toLowerCase(Locale.ROOT);
+            var aluno = alunos.findByEmail(email)
+                .filter(a -> a.getSenhaHash() != null)
+                .orElseThrow(() -> new UsernameNotFoundException("Credenciais invalidas"));
+            return User.withUsername(aluno.getEmail())
+                .password(aluno.getSenhaHash())
+                .roles("ALUNO")
                 .build();
-
-        UserDetails user2 = User.builder()
-
-                .username("admin")
-                .password(encoder.encode("321"))
-                .roles("ADMIN")
-                .build();
-
-        return new InMemoryUserDetailsManager(user1,user2);
+        };
     }
-
-
-
-
 }
