@@ -105,3 +105,7 @@ Registros antigos de aluno sem e-mail e hash de senha continuam sem acesso. O ca
 ```
 
 Os testes não precisam de Docker ou credenciais PostgreSQL. Cobrem inicialização, validação do cadastro, e-mail duplicado, hash BCrypt, limite UTF-8 da senha, credenciais inválidas, login com normalização do e-mail, troca do identificador da sessão, CSRF, logout e bloqueio das rotas removidas. Os resultados com H2 não comprovam comportamento específico do PostgreSQL.
+
+## Documentação no Notion
+
+[Spring Security: cadastro, login e histórico das alterações](https://app.notion.com/p/4077bfee00c6814782e5f5b13b9e5df6). O acesso depende das permissões da página no Notion.
