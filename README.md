@@ -10,21 +10,19 @@ Java 17 ou superior, Spring Boot 4.1.1, Spring MVC, Spring Security, Spring Data
 
 ## Executar
 
-Instale um JDK e o Docker com Compose. No PowerShell, na raiz do projeto:
+Instale um JDK e disponibilize um banco PostgreSQL local ou remoto. Crie o banco `academic` e um usuário com permissão para criar e atualizar suas tabelas. Docker e Docker Compose não são necessários. No PowerShell, na raiz do projeto:
 
 ```powershell
 $env:JAVA_HOME = 'C:/Program Files/Java/jdk-21.0.11' # ajuste para seu JDK
-$env:POSTGRES_DB = 'academic'
 $env:POSTGRES_USER = 'academic'
 $env:POSTGRES_PASSWORD = '<sua-senha-local>'
-$env:DB_URL = 'jdbc:postgresql://localhost:5431/academic'
-docker compose up -d
+$env:DB_URL = 'jdbc:postgresql://localhost:5432/academic'
 ./mvnw.cmd spring-boot:run
 ```
 
 Base: `http://localhost:8080`. As variáveis devem estar definidas no terminal que inicia a aplicação. Não há interface gráfica: utilize Postman ou outro cliente HTTP.
 
-Para parar o banco, execute `docker compose stop`. O volume `pgdata` preserva os dados. O Hibernate mantém `ddl-auto: update`; a remoção das classes de cursos e matrículas não apaga as tabelas antigas do seu banco. Nenhum comando de exclusão de dados é executado por esta alteração.
+O PostgreSQL é gerenciado fora da aplicação. Ajuste `DB_URL`, `POSTGRES_USER` e `POSTGRES_PASSWORD` para seu ambiente. O Hibernate mantém `ddl-auto: update`; a remoção das classes de cursos e matrículas não apaga as tabelas antigas do banco. A remoção do Compose não exclui bancos, contêineres ou volumes existentes.
 
 ## Endpoints
 
